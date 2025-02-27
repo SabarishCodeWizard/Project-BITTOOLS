@@ -6,7 +6,7 @@ from googletrans import Translator
 from pymongo import MongoClient
 
 app = Flask(__name__)
-app.secret_key = "sabarish"
+app.secret_key = "qwertyuiopasdfghjklzxcvbnm"
 
 # Firebase Configuration
 firebaseConfig = {
