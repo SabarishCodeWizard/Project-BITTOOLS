@@ -95,6 +95,10 @@ def translate():
 
     translated_text = ""
     user_id = session['uid']
+
+    # Fetch user's email from Firestore
+    user_doc = db.collection("users").document(user_id).get()
+    email = user_doc.to_dict().get("email", "Unknown") if user_doc.exists else "Unknown"
     
     if request.method == 'POST':
         text = request.form['text']
@@ -105,6 +109,7 @@ def translate():
         # Store translation in MongoDB
         translations_collection.insert_one({
             "user_id": user_id,
+            "email": email,
             "original_text": text,
             "translated_text": translated_text,
             "target_lang": target_lang
@@ -114,6 +119,8 @@ def translate():
     user_translations = list(translations_collection.find({"user_id": user_id}))
 
     return render_template('translator.html', translated_text=translated_text, user_translations=user_translations)
+
+
 
 @app.route('/logout')
 def logout():
