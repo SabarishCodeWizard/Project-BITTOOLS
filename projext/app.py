@@ -27,6 +27,8 @@ cred = credentials.Certificate("D:/GitHub/Game/projext/translator-eb5a7-firebase
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
+# MONGO_URI = "mongodb+srv://bitsathyattendance:5HuQI38XLYhZGWD1@bittools.uovd9.mongodb.net/translatorDB?retryWrites=true&w=majority&appName=bittools"
+
 # MongoDB Connection
 mongo_client = MongoClient("mongodb://localhost:27017/")
 mongo_db = mongo_client["translatorDB"]
@@ -65,7 +67,7 @@ def login():
     try:
         user = auth.sign_in_with_email_and_password(email, password)
         session['user'] = user['idToken']
-        session['uid'] = user['localId']  # Store user ID in session
+        session['uid'] = user['localId'] 
         return redirect(url_for('home'))
     except Exception as e:
         return str(e)
