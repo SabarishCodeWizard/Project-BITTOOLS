@@ -3,10 +3,12 @@ import pyrebase
 import firebase_admin
 from firebase_admin import credentials, firestore
 from googletrans import Translator
+from pymongo import MongoClient
 
 app = Flask(__name__)
 app.secret_key = "sabarish"
 
+# Firebase Configuration
 firebaseConfig = {
     "apiKey": "AIzaSyASjOmonau3_SFB-W7jzmLn_kvxAhugMJo",
     "authDomain": "translator-eb5a7.firebaseapp.com",
@@ -15,9 +17,8 @@ firebaseConfig = {
     "messagingSenderId": "437614700636",
     "appId": "1:437614700636:web:2399b1594f65585dbc5e99",
     "measurementId": "G-X0E3HX424F",
-    "databaseURL": "https://translator-eb5a7.firebaseio.com"  # Add this line
+    "databaseURL": "https://translator-eb5a7.firebaseio.com"  
 }
-
 
 firebase = pyrebase.initialize_app(firebaseConfig)
 auth = firebase.auth()
@@ -25,6 +26,11 @@ auth = firebase.auth()
 cred = credentials.Certificate("D:/GitHub/Game/projext/translator-eb5a7-firebase-adminsdk-fbsvc-fb535b5450.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
+
+# MongoDB Connection
+mongo_client = MongoClient("mongodb://localhost:27017/")
+mongo_db = mongo_client["translatorDB"]
+translations_collection = mongo_db["translations"]
 
 @app.route('/')
 def index():
@@ -59,6 +65,7 @@ def login():
     try:
         user = auth.sign_in_with_email_and_password(email, password)
         session['user'] = user['idToken']
+        session['uid'] = user['localId']  # Store user ID in session
         return redirect(url_for('home'))
     except Exception as e:
         return str(e)
@@ -81,20 +88,37 @@ def home():
         return render_template('home.html')
     return redirect(url_for('index'))
 
-
 @app.route('/translate', methods=['GET', 'POST'])
 def translate():
+    if 'user' not in session:
+        return redirect(url_for('index'))
+
     translated_text = ""
+    user_id = session['uid']
+    
     if request.method == 'POST':
         text = request.form['text']
         target_lang = request.form['target_lang']
         translator = Translator()
         translated_text = translator.translate(text, dest=target_lang).text
-    return render_template('translator.html', translated_text=translated_text)
+
+        # Store translation in MongoDB
+        translations_collection.insert_one({
+            "user_id": user_id,
+            "original_text": text,
+            "translated_text": translated_text,
+            "target_lang": target_lang
+        })
+
+    # Retrieve user's past translations
+    user_translations = list(translations_collection.find({"user_id": user_id}))
+
+    return render_template('translator.html', translated_text=translated_text, user_translations=user_translations)
 
 @app.route('/logout')
 def logout():
     session.pop('user', None)
+    session.pop('uid', None)
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
