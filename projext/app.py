@@ -41,16 +41,22 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        text = request.form['text']
         email = request.form['email']
         password = request.form['password']
         confirm_password = request.form['confirm_password']
+        number = request.form['number']
+
         
         if password == confirm_password:
             try:
                 user = auth.create_user_with_email_and_password(email, password)
                 user_info = {
+                    "username": text, 
                     "email": email,
-                    "uid": user["localId"]
+                    "uid": user["localId"],
+                    "number": number,
+                    
                 }
                 db.collection("users").document(user["localId"]).set(user_info)
                 return redirect(url_for('index'))
