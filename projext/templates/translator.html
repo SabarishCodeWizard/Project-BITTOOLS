@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Translator</title>
+</head>
+<body>
+    <h2>Google Translator</h2>
+    <form action="/translate" method="post">
+        <textarea name="text" placeholder="Enter text to translate" required></textarea><br>
+        <select name="target_lang">
+            <option value="ta">Tamil</option>
+            <option value="fr">French</option>
+            <option value="es">Spanish</option>
+            <option value="hi">Hindi</option>
+            <option value="zh-cn">Chinese (Simplified)</option>
+        </select><br>
+        <button type="submit">Translate</button>
+    </form>
+
+    {% if translated_text %}
+        <h3>Translated Text:</h3>
+        <p>{{ translated_text }}</p>
+    {% endif %}
+
+    <br>
+    <a href="/home">Back to Home</a>
+</body>
+</html>
